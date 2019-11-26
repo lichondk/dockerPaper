@@ -1,49 +1,16 @@
-# Build NodeJS Express app using Azure Pipelines
-# https://docs.microsoft.com/azure/devops/pipelines/languages/javascript?view=vsts
 pool:
-  vmImage: 'Ubuntu 16.04'
-  
+  vmImage: 'ubuntu-16.04'
+strategy:
+  matrix:
+    node_8_x:
+      node_version: 8.x
+    node_9_x:
+      node_version: 9.x
+
 steps:
-- task: NodeTool@0
+- task: NodeTool@0 
   inputs:
-    versionSpec: '8.x'
-  
-- task: Npm@1
-  displayName: 'npm install'
-  inputs:
-    command: install
-
-- task: Npm@1
-  displayName: 'npm test'
-  inputs:
-    command: custom
-    customCommand: 'test'
-
-- task: PublishTestResults@2
-  inputs:
-    testResultsFiles: '**/TEST-RESULTS.xml'
-    testRunTitle: 'Test results for JavaScript'
-
-- task: PublishCodeCoverageResults@1
-  inputs: 
-    codeCoverageTool: Cobertura
-    summaryFileLocation: '$(System.DefaultWorkingDirectory)/**/*coverage.xml'
-    reportDirectory: '$(System.DefaultWorkingDirectory)/**/coverage'
-    
-- task: ArchiveFiles@2
-  inputs:
-    rootFolderOrFile: '$(System.DefaultWorkingDirectory)'
-    includeRootFolder: false
-
-- task: PublishBuildArtifacts@1
-
-- script: docker build -f Dockerfile -t contoso/myjavascriptapp:$(Build.BuildId)
-
-- task: Docker@1
-  inputs:
-     command: push An Image
-     containerregistrytype: container Registry
-     dockerRegistryEndpoint: registry.contoso.org
-     imageName: contoso/myjavasriptcontainer:v1.0.0
+    versionSpec: $(node_version)
 
 - script: npm install
+- script: npx mocha
